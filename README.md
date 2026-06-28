@@ -26,12 +26,12 @@ It handles binary detection, prevents duplicate instances, waits for the server 
 
 ```bash
 # 1. Make the script executable
-chmod +x start-llama-server.sh
+chmod +x start.sh
 
 # 2. (Optional) Put your .gguf model next to the script, or set MODEL=...
 
 # 3. Start the server
-./start-llama-server.sh
+./start.sh
 ```
 
 Once it says **"llama-server is ready"**, you can use the OpenAI-compatible endpoint:
@@ -44,25 +44,25 @@ http://localhost:8888/v1
 
 ### Environment Variables
 
-| Variable            | Default                                      | Description |
-|---------------------|----------------------------------------------|-----------|
-| `MODEL`             | `Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf`            | Path to your GGUF model file |
-| `LLAMA_SERVER_BIN`  | auto-detected                                | Full path to `llama-server` binary |
-| `HOST`              | `0.0.0.0`                                    | Bind address |
-| `PORT`              | `8888`                                       | Server port |
-| `SCRIPT_DIR`        | (directory of the script)                    | Used for relative model/binary paths |
+| Variable           | Default                           | Description                          |
+| ------------------ | --------------------------------- | ------------------------------------ |
+| `MODEL`            | `Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf` | Path to your GGUF model file         |
+| `LLAMA_SERVER_BIN` | auto-detected                     | Full path to `llama-server` binary   |
+| `HOST`             | `0.0.0.0`                         | Bind address                         |
+| `PORT`             | `8888`                            | Server port                          |
+| `SCRIPT_DIR`       | (directory of the script)         | Used for relative model/binary paths |
 
 **Examples:**
 
 ```bash
 # Use a different model
-MODEL=llama-3.1-70b-Q4_K_M.gguf ./start-llama-server.sh
+MODEL=llama-3.1-70b-Q4_K_M.gguf ./start.sh
 
 # Point to a custom llama.cpp build
-LLAMA_SERVER_BIN=~/llama.cpp/build/bin/llama-server ./start-llama-server.sh
+LLAMA_SERVER_BIN=~/llama.cpp/build/bin/llama-server ./start.sh
 
 # Change port
-PORT=11434 ./start-llama-server.sh
+PORT=11434 ./start.sh
 ```
 
 ### Customizing Server Flags
@@ -95,7 +95,7 @@ PID file: `.llama-server.pid`
 ├── build/
 │   └── bin/
 │       └── llama-server
-├── start-llama-server.sh
+├── start.sh
 ├── Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
 └── README.md
 ```
@@ -109,7 +109,7 @@ This layout allows full auto-detection without setting any environment variables
 Set the full path explicitly:
 
 ```bash
-LLAMA_SERVER_BIN=/path/to/llama-server ./start-llama-server.sh
+LLAMA_SERVER_BIN=/path/to/llama-server ./start.sh
 ```
 
 **Server starts but never becomes "ready"**
@@ -127,7 +127,7 @@ Common causes: out of memory, unsupported flags in your llama.cpp build, or mode
 Change the port:
 
 ```bash
-PORT=9999 ./start-llama-server.sh
+PORT=9999 ./start.sh
 ```
 
 ## Compatibility
