@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MODEL="${MODEL:-Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf}"
+# Set this to the GGUF file to serve. Relative paths are resolved from this directory.
+GGUF_FILE="${GGUF_FILE:-Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf}"
+MODEL="${MODEL:-${GGUF_FILE}}"
 LLAMA_SERVER_BIN="${LLAMA_SERVER_BIN:-}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 HOST="0.0.0.0"
