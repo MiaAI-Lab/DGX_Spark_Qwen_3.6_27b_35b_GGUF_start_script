@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Set this to the GGUF file to serve. Relative paths are resolved from this directory.
-GGUF_FILE="${GGUF_FILE:-Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf}"
+GGUF_FILE="${GGUF_FILE:-Qwen3.6-27B-UD-Q8_K_XL.gguf}"
 MODEL="${MODEL:-${GGUF_FILE}}"
 LLAMA_SERVER_BIN="${LLAMA_SERVER_BIN:-}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,13 +19,36 @@ fi
 if [[ -z "${LLAMA_SERVER_BIN}" ]]; then
   if command -v llama-server >/dev/null 2>&1; then
     LLAMA_SERVER_BIN="$(command -v llama-server)"
-  elif [[ -x "${SCRIPT_DIR}/build/bin/llama-server" ]]; then
-    LLAMA_SERVER_BIN="${SCRIPT_DIR}/build/bin/llama-server"
-  elif [[ -x "${SCRIPT_DIR}/llama-server" ]]; then
-    LLAMA_SERVER_BIN="${SCRIPT_DIR}/llama-server"
   else
-    echo "error: llama-server not found; set LLAMA_SERVER_BIN or put llama-server in PATH" >&2
-    exit 1
+    for candidate in \
+      "${SCRIPT_DIR}/build/bin/llama-server" \
+      "${SCRIPT_DIR}/../build/bin/llama-server" \
+      "${SCRIPT_DIR}/../../build/bin/llama-server" \
+      "${SCRIPT_DIR}/llama-server" \
+      "${SCRIPT_DIR}/../llama-server" \
+      "${SCRIPT_DIR}/../../llama-server" \
+      "${HOME}/llama.cpp/build/bin/llama-server" \
+      "${HOME}/build/bin/llama-server" \
+      "${HOME}/llama-server" \
+      "${HOME}/bin/llama-server"
+    do
+      if [[ -x "${candidate}" ]]; then
+        LLAMA_SERVER_BIN="${candidate}"
+        break
+      fi
+    done
+
+    if [[ -z "${LLAMA_SERVER_BIN}" && -d "${HOME}" ]]; then
+      found_bin="$(find "${HOME}" -maxdepth 4 -type f -name llama-server -perm -u+x 2>/dev/null | head -n 1 || true)"
+      if [[ -n "${found_bin}" ]]; then
+        LLAMA_SERVER_BIN="${found_bin}"
+      fi
+    fi
+
+    if [[ -z "${LLAMA_SERVER_BIN}" ]]; then
+      echo "error: llama-server not found; set LLAMA_SERVER_BIN or put llama-server in PATH" >&2
+      exit 1
+    fi
   fi
 fi
 
