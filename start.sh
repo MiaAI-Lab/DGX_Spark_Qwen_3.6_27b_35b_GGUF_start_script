@@ -5,6 +5,7 @@ set -euo pipefail
 GGUF_FILE="${GGUF_FILE:-Qwen3.6-27B-UD-Q8_K_XL.gguf}"
 MODEL="${MODEL:-${GGUF_FILE}}"
 LLAMA_SERVER_BIN="${LLAMA_SERVER_BIN:-}"
+LLAMA_SERVER_PATHS="${LLAMA_SERVER_PATHS:-}"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 HOST="0.0.0.0"
 PORT="8000"
@@ -20,7 +21,11 @@ if [[ -z "${LLAMA_SERVER_BIN}" ]]; then
   if command -v llama-server >/dev/null 2>&1; then
     LLAMA_SERVER_BIN="$(command -v llama-server)"
   else
-    for candidate in \
+    search_paths=()
+    if [[ -n "${LLAMA_SERVER_PATHS}" ]]; then
+      IFS=':' read -r -a search_paths <<< "${LLAMA_SERVER_PATHS}"
+    else
+      search_paths=(
       "${SCRIPT_DIR}/build/bin/llama-server" \
       "${SCRIPT_DIR}/../build/bin/llama-server" \
       "${SCRIPT_DIR}/../../build/bin/llama-server" \
@@ -31,7 +36,10 @@ if [[ -z "${LLAMA_SERVER_BIN}" ]]; then
       "${HOME}/build/bin/llama-server" \
       "${HOME}/llama-server" \
       "${HOME}/bin/llama-server"
-    do
+      )
+    fi
+
+    for candidate in "${search_paths[@]}"; do
       if [[ -x "${candidate}" ]]; then
         LLAMA_SERVER_BIN="${candidate}"
         break
