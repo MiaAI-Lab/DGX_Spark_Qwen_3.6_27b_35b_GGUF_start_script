@@ -11,7 +11,13 @@ fi
 
 pid="$(cat "${PID_FILE}")"
 
-if [[ -z "${pid}" ]] || ! kill -0 "${pid}" 2>/dev/null; then
+if [[ ! "${pid}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Invalid PID file contents (removing stale PID file)"
+  rm -f "${PID_FILE}"
+  exit 0
+fi
+
+if ! kill -0 "${pid}" 2>/dev/null; then
   echo "llama-server is not running (removing stale PID file)"
   rm -f "${PID_FILE}"
   exit 0
