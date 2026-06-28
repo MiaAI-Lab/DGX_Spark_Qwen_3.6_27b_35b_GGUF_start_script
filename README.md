@@ -6,7 +6,8 @@ It handles binary detection, prevents duplicate instances, waits for the server 
 
 ## Features
 
-- Automatic `llama-server` binary detection (`PATH`, `./build/bin/llama-server`, or `./llama-server`)
+- Automatic `llama-server` binary detection (`PATH`, nearby `build/bin` paths, or a local `llama-server` symlink/binary)
+- Optional `LLAMA_SERVER_PATHS` override for custom search paths
 - PID file management and cleanup of stale processes
 - Health check polling (`/health` endpoint) before declaring ready
 - Persistent logging and background execution via `nohup`
@@ -77,6 +78,7 @@ MODEL=llama-3.1-70b-Q4_K_M.gguf ./start.sh
 | Setting             | Default                                      | How to change |
 |---------------------|----------------------------------------------|---------------|
 | `LLAMA_SERVER_BIN`  | auto-detected                                | Set environment variable |
+| `LLAMA_SERVER_PATHS` | auto-detected search list                   | Set colon-separated paths |
 | `HOST`              | `0.0.0.0`                                    | Edit `start.sh` |
 | `PORT`              | `8000`                                       | Edit `start.sh` |
 | `PID_FILE`          | `.llama-server.pid`                          | Edit `start.sh` / `stop.sh` |
@@ -86,6 +88,12 @@ Example:
 
 ```bash
 LLAMA_SERVER_BIN=~/llama.cpp/build/bin/llama-server ./start.sh
+```
+
+If you want to provide your own search list instead of a single explicit binary, set `LLAMA_SERVER_PATHS` to a colon-separated list:
+
+```bash
+LLAMA_SERVER_PATHS="$HOME/llama.cpp/build/bin/llama-server:$HOME/bin/llama-server:/opt/llama/bin/llama-server" ./start.sh
 ```
 
 To change the port, edit this line in `start.sh`:
@@ -140,7 +148,7 @@ Just edit the script and restart.
 └── README.md
 ```
 
-`llama-server` can be a binary or a symlink to your llama.cpp build. The script also checks `./build/bin/llama-server` and `PATH`.
+`llama-server` can be a binary or a symlink to your llama.cpp build. The script checks `LLAMA_SERVER_PATHS` first when set, then `PATH`, `./build/bin/llama-server`, `../build/bin/llama-server`, `../../build/bin/llama-server`, and local `llama-server` paths near the script. It also checks a few common home-directory locations.
 
 ## Troubleshooting
 
