@@ -46,7 +46,7 @@ http://localhost:8000/v1
 ./stop.sh
 ```
 
-This gracefully stops the running server, waits for clean shutdown, and removes the PID file.
+This gracefully stops the running server, waits for clean shutdown, and removes the PID file. If the PID file is missing or stale, it falls back to finding the matching `llama-server` for this model on port `8000`.
 
 ## Configuration
 
@@ -118,10 +118,11 @@ Just edit the script and restart.
 **stop.sh** does the following:
 
 1. Reads the PID from `.llama-server.pid`
-2. Sends `SIGTERM` for graceful shutdown
-3. Waits up to 15 seconds
-4. Force kills with `SIGKILL` only if necessary
-5. Cleans up the PID file
+2. Falls back to the matching `llama-server` process if the PID file is missing, invalid, or stale
+3. Sends `SIGTERM` for graceful shutdown
+4. Waits up to 15 seconds
+5. Force kills with `SIGKILL` only if necessary
+6. Cleans up the PID file
 
 **Files created by the scripts:**
 
