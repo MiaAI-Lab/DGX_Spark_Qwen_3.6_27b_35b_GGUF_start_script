@@ -1,22 +1,22 @@
-# llama-server-starter
+# llama-server starter
 
-A robust, production-ready bash script to start and manage [`llama-server`](https://github.com/ggml-org/llama.cpp) from [llama.cpp](https://github.com/ggml-org/llama.cpp).
+Bash scripts to start and stop [`llama-server`](https://github.com/ggml-org/llama.cpp) from [llama.cpp](https://github.com/ggml-org/llama.cpp) for the local GGUF model in this directory.
 
 It handles binary detection, prevents duplicate instances, waits for the server to become healthy, and keeps everything running in the background even after you close the terminal.
 
 ## Features
 
-- ✅ Automatic `llama-server` binary detection (PATH + common build locations)
-- ✅ PID file management + automatic cleanup of stale processes
-- ✅ Health check polling (`/health` endpoint) before declaring ready
-- ✅ Persistent logging + background execution via `nohup`
-- ✅ Fully configurable via environment variables
-- ✅ Clean, colored startup output
-- ✅ OpenAI-compatible API ready (`/v1` endpoint)
+- Automatic `llama-server` binary detection (`PATH`, `./build/bin/llama-server`, or `./llama-server`)
+- PID file management and cleanup of stale processes
+- Health check polling (`/health` endpoint) before declaring ready
+- Persistent logging and background execution via `nohup`
+- Simple GGUF file setting at the top of `start.sh`
+- OpenAI-compatible API ready (`/v1` endpoint)
+- Companion `stop.sh` script for graceful shutdown
 
 ## Requirements
 
-- Linux (tested on Ubuntu)
+- Linux
 - `bash`
 - `curl`
 - A compiled `llama.cpp` build containing the `llama-server` binary
@@ -25,10 +25,10 @@ It handles binary detection, prevents duplicate instances, waits for the server 
 ## Quick Start
 
 ```bash
-# 1. Make the script executable
-chmod +x start.sh
+# 1. Make the scripts executable
+chmod +x start.sh stop.sh
 
-# 2. (Optional) Put your .gguf model next to the script, or set MODEL=...
+# 2. Put your .gguf model next to the script, or update GGUF_FILE at the top of start.sh
 
 # 3. Start the server
 ./start.sh
@@ -37,37 +37,66 @@ chmod +x start.sh
 Once it says **"llama-server is ready"**, you can use the OpenAI-compatible endpoint:
 
 ```
-http://localhost:8000/v1
+http://localhost:8888/v1
 ```
+
+### Stopping the Server
+
+```bash
+./stop.sh
+```
+
+This gracefully stops the running server, waits for clean shutdown, and removes the PID file.
 
 ## Configuration
 
-### Environment Variables
+### GGUF File
 
-| Variable           | Default                           | Description                          |
-| ------------------ | --------------------------------- | ------------------------------------ |
-| `MODEL`            | `Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf` | Path to your GGUF model file         |
-| `LLAMA_SERVER_BIN` | auto-detected                     | Full path to `llama-server` binary   |
-| `HOST`             | `0.0.0.0`                         | Bind address                         |
-| `PORT`             | `8000`                            | Server port                          |
-| `SCRIPT_DIR`       | (directory of the script)         | Used for relative model/binary paths |
-
-**Examples:**
+Set the model file at the top of `start.sh`:
 
 ```bash
-# Use a different model
+GGUF_FILE="${GGUF_FILE:-Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf}"
+```
+
+Relative paths are resolved from the directory containing `start.sh`.
+
+You can also override the model for one run without editing the file:
+
+```bash
+GGUF_FILE=other-model.gguf ./start.sh
+```
+
+The older `MODEL` override still works and takes priority over `GGUF_FILE`:
+
+```bash
 MODEL=llama-3.1-70b-Q4_K_M.gguf ./start.sh
+```
 
-# Point to a custom llama.cpp build
+### Other Settings
+
+| Setting             | Default                                      | How to change |
+|---------------------|----------------------------------------------|---------------|
+| `LLAMA_SERVER_BIN`  | auto-detected                                | Set environment variable |
+| `HOST`              | `0.0.0.0`                                    | Edit `start.sh` |
+| `PORT`              | `8888`                                       | Edit `start.sh` |
+| `PID_FILE`          | `.llama-server.pid`                          | Edit `start.sh` / `stop.sh` |
+| `LOG_FILE`          | `.llama-server.log`                          | Edit `start.sh` |
+
+Example:
+
+```bash
 LLAMA_SERVER_BIN=~/llama.cpp/build/bin/llama-server ./start.sh
+```
 
-# Change port
-PORT=11434 ./start.sh
+To change the port, edit this line in `start.sh`:
+
+```bash
+PORT="8888"
 ```
 
 ### Customizing Server Flags
 
-All `llama-server` flags are defined inside the script (around the `nohup` line). Common things you might want to change:
+All `llama-server` flags are defined inside `start.sh` (around the `nohup` line). Common things you might want to change:
 
 - `--ctx-size`
 - `--temperature`, `--top-p`, `--top-k`
@@ -78,29 +107,39 @@ Just edit the script and restart.
 
 ## How It Works
 
-1. Checks if a healthy instance is already running → exits early if so
+**start.sh** does the following:
+
+1. Checks if a healthy instance is already running and exits early if so
 2. Cleans up stale PID files / processes
 3. Launches `llama-server` in the background with `nohup`
-4. Polls `http://127.0.0.1:PORT/health` every 5 seconds until ready
+4. Polls `http://127.0.0.1:8888/health` every 5 seconds until ready
 5. Prints the ready message + OpenAI base URL
 
-Log file: `.llama-server.log` (in the same directory as the script)
+**stop.sh** does the following:
 
-PID file: `.llama-server.pid`
+1. Reads the PID from `.llama-server.pid`
+2. Sends `SIGTERM` for graceful shutdown
+3. Waits up to 15 seconds
+4. Force kills with `SIGKILL` only if necessary
+5. Cleans up the PID file
+
+**Files created by the scripts:**
+
+- `.llama-server.log` - Server output log
+- `.llama-server.pid` - Process ID file
 
 ## Recommended Directory Layout
 
 ```
-~/llama.cpp/
-├── build/
-│   └── bin/
-│       └── llama-server
+./
+├── llama-server
 ├── start.sh
+├── stop.sh
 ├── Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf
 └── README.md
 ```
 
-This layout allows full auto-detection without setting any environment variables.
+`llama-server` can be a binary or a symlink to your llama.cpp build. The script also checks `./build/bin/llama-server` and `PATH`.
 
 ## Troubleshooting
 
@@ -124,17 +163,14 @@ Common causes: out of memory, unsupported flags in your llama.cpp build, or mode
 
 **Port already in use**
 
-Change the port:
+Edit `PORT` in `start.sh`, then start the server again.
 
-```bash
-PORT=9999 ./start.sh
-```
+The default port is `8888`.
 
 ## Compatibility
 
-- Works with recent `llama.cpp` builds (speculative decoding + chat template kwargs support recommended)
-- Tested on Ubuntu 22.04 / 24.04
-- Should work on any modern Linux distro with `bash` and `curl`
+- Requires a `llama-server` build that supports the flags used in `start.sh`
+- Should work on modern Linux distributions with `bash` and `curl`
 
 ## License
 
@@ -142,4 +178,4 @@ MIT
 
 ---
 
-Made for convenient local LLM serving with llama.cpp. PRs and improvements welcome!
+Made for convenient local LLM serving with llama.cpp.
