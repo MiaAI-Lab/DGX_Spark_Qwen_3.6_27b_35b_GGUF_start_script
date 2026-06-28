@@ -37,7 +37,7 @@ chmod +x start.sh stop.sh
 Once it says **"llama-server is ready"**, you can use the OpenAI-compatible endpoint:
 
 ```
-http://localhost:8888/v1
+http://localhost:8000/v1
 ```
 
 ### Stopping the Server
@@ -78,7 +78,7 @@ MODEL=llama-3.1-70b-Q4_K_M.gguf ./start.sh
 |---------------------|----------------------------------------------|---------------|
 | `LLAMA_SERVER_BIN`  | auto-detected                                | Set environment variable |
 | `HOST`              | `0.0.0.0`                                    | Edit `start.sh` |
-| `PORT`              | `8888`                                       | Edit `start.sh` |
+| `PORT`              | `8000`                                       | Edit `start.sh` |
 | `PID_FILE`          | `.llama-server.pid`                          | Edit `start.sh` / `stop.sh` |
 | `LOG_FILE`          | `.llama-server.log`                          | Edit `start.sh` |
 
@@ -91,7 +91,7 @@ LLAMA_SERVER_BIN=~/llama.cpp/build/bin/llama-server ./start.sh
 To change the port, edit this line in `start.sh`:
 
 ```bash
-PORT="8888"
+PORT="8000"
 ```
 
 ### Customizing Server Flags
@@ -112,7 +112,7 @@ Just edit the script and restart.
 1. Checks if a healthy instance is already running and exits early if so
 2. Cleans up stale PID files / processes
 3. Launches `llama-server` in the background with `nohup`
-4. Polls `http://127.0.0.1:8888/health` every 5 seconds until ready
+4. Polls `http://127.0.0.1:8000/health` every 5 seconds until ready
 5. Prints the ready message + OpenAI base URL
 
 **stop.sh** does the following:
@@ -165,7 +165,7 @@ Common causes: out of memory, unsupported flags in your llama.cpp build, or mode
 
 Edit `PORT` in `start.sh`, then start the server again.
 
-The default port is `8888`.
+The default port is `8000`.
 
 ## Compatibility
 
