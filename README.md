@@ -37,7 +37,7 @@ chmod +x start.sh
 Once it says **"llama-server is ready"**, you can use the OpenAI-compatible endpoint:
 
 ```
-http://localhost:8888/v1
+http://localhost:8000/v1
 ```
 
 ## Configuration
@@ -49,7 +49,7 @@ http://localhost:8888/v1
 | `MODEL`            | `Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf` | Path to your GGUF model file         |
 | `LLAMA_SERVER_BIN` | auto-detected                     | Full path to `llama-server` binary   |
 | `HOST`             | `0.0.0.0`                         | Bind address                         |
-| `PORT`             | `8888`                            | Server port                          |
+| `PORT`             | `8000`                            | Server port                          |
 | `SCRIPT_DIR`       | (directory of the script)         | Used for relative model/binary paths |
 
 **Examples:**
